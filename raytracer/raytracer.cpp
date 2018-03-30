@@ -1,9 +1,9 @@
 /***********************************************************
-	
+
 	Starter code for Assignment 3
 
-	Implementations of functions in raytracer.h, 
-	and the main function which specifies the scene to be rendered.	
+	Implementations of functions in raytracer.h,
+	and the main function which specifies the scene to be rendered.
 
 ***********************************************************/
 
@@ -24,43 +24,42 @@ void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 }
 
 void Raytracer::computeTransforms(Scene& scene) {
-	// right now this method might seem redundant. But if you decide to implement 
+	// right now this method might seem redundant. But if you decide to implement
 	// scene graph this is where you would propagate transformations to child nodes
-		
+
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
-
 		node->modelToWorld = node->trans;
-		node->worldToModel = node->invtrans; 
+		node->worldToModel = node->invtrans;
 	}
 }
 
 void Raytracer::computeShading(Ray3D& ray, LightList& light_list) {
 	for (size_t  i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
-		
+
 		// Each lightSource provides its own shading function.
 		// Implement shadows here if needed.
-		light->shade(ray);        
+		light->shade(ray);
 	}
 }
 
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list) {
-	Color col(0.0, 0.0, 0.0); 
-	traverseScene(scene, ray); 
+	Color col(0.0, 0.0, 0.0);
+	traverseScene(scene, ray);
 
-	// Don't bother shading if the ray didn't hit 
+	// Don't bother shading if the ray didn't hit
 	// anything.
 	if (!ray.intersection.none) {
-		computeShading(ray, light_list); 
-		col = ray.col;  
+		computeShading(ray, light_list);
+		col = ray.col;
 	}
 
-	// You'll want to call shadeRay recursively (with a different ray, 
-	// of course) here to implement reflection/refraction effects.  
+	// You'll want to call shadeRay recursively (with a different ray,
+	// of course) here to implement reflection/refraction effects.
 
-	return col; 
-}	
+	return col;
+}
 
 void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image) {
 	computeTransforms(scene);
@@ -73,7 +72,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	// Construct a ray for each pixel.
 	for (int i = 0; i < image.height; i++) {
 		for (int j = 0; j < image.width; j++) {
-			// Sets up ray origin and direction in view space, 
+			// Sets up ray origin and direction in view space,
 			// image plane is at z = -1.
 			Point3D origin(0, 0, 0);
 			Point3D imagePlane;
@@ -81,19 +80,16 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
 			imagePlane[2] = -1;
 
-			
-			
 			Ray3D ray;
-			// TODO: Convert ray to world space  
+			// TODO: Convert ray to world space
 			Point3D worldOri = viewToWorld * origin;
 			Vector3D worldDir = viewToWorld * (imagePlane - origin);
 			worldDir.normalize();
 			ray.origin = worldOri;
 			ray.dir = worldDir;
 
-			Color col = shadeRay(ray, scene, light_list); 
-			image.setColorAtPixel(i, j, col);			
+			Color col = shadeRay(ray, scene, light_list);
+			image.setColorAtPixel(i, j, col);
 		}
 	}
 }
-
