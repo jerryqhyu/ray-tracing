@@ -38,7 +38,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			double t = -1.0 * objectOri[2] / objectDir[2];
 			Point3D inter = Point3D((objectOri + t * objectDir)[0], (objectOri + t * objectDir)[1], (objectOri + t * objectDir)[2]);
 			if (inter[0] <= 0.5 && inter[0] >= -0.5 && inter[1] < 0.5 && inter[1] > -0.5 ) {
-				if (ray.intersection.none != false || ray.intersection.t_value > t) {
+				if (ray.intersection.none != false || ray.intersection.t_value < t) {
 					ray.intersection.none = false;
 					ray.intersection.point = modelToWorld * inter;
 					ray.intersection.t_value = t;
@@ -50,7 +50,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 					return true;
 				}
 			} else {
-				ray.intersection.none = true;
+				//ray.intersection.none = true;
 				
 			}
 		}
@@ -79,7 +79,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 
 	for (i = 0; i < 1000; i ++) {
 		Vector3D p = Vector3D(objectOri[0], objectOri[1], objectOri[2]) + i * objectDir;
-		if (p.length() <= 1 && (ray.intersection.none != false || ray.intersection.t_value > i)) {
+		if (p.length() <= 1 && (ray.intersection.none != false || ray.intersection.t_value < i)) {
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * Point3D(p[0],p[1],p[2]);
 			ray.intersection.t_value = i;
@@ -88,8 +88,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			ray.intersection.normal = worldNormal;
 			return true;
 		} else {
-			ray.intersection.none = true;
-
+			//ray.intersection.none = true;
 		}
 	}
 		
