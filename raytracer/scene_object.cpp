@@ -29,12 +29,11 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	Point3D e = worldToModel * ray.origin;
 	Vector3D d = worldToModel * ray.dir;
 	Vector3D ec = Vector3D(e[0], e[1], e[2]);
-	Vector3D n = Vector3D(0.0, 0.0, 1.0);
-	n.normalize();
-	
-	double t = (-1 * ec).dot(n) / d.dot(n);
+	Vector3D n = Vector3D(0.0, 0.0, 1.0); // already a unit normal
+
+	double t = (-ec).dot(n) / d.dot(n);
 	Point3D p = e + t * d;
-	if (p[0] < 0.5 && p[0] > -0.5 && p[1] < 0.5 && p[1] > -0.5) {
+	if (p[0] <= 0.5 && p[0] >= -0.5 && p[1] <= 0.5 && p[1] >= -0.5) {
 		if (ray.intersection.none || t < ray.intersection.t_value) {
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * p;
@@ -60,55 +59,49 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	// to simplify the intersection test.
 	Point3D e = worldToModel * ray.origin;
 	Vector3D d = worldToModel * ray.dir;
-	Vector3D ec = Vector3D(e[0], e[1], e[2]);
-
+	Vector3D eminusc = Vector3D(e[0], e[1], e[2]);
 	double A = d.dot(d);
-	double B = (2 * d).dot(ec);
-	double C = ec.dot(ec) - 1;
-
-	if (B * B - 4 * A * C < 0) {
+	double B = 2 * d.dot(eminusc);
+	double C = eminusc.dot(eminusc) - 1;
+	double det = pow(B, 2) - (4 * A * C);
+	if (det < 0) {
 		return false;
-	} else if (B * B - 4 * A * C == 0) {
-		double t = -1 * B / (2 * A);
-		Point3D p = e + t * d;
-		if (ray.intersection.none || t < ray.intersection.t_value) {
+	} else if (det == 0) {
+		double t = -B / (2 * A);
+		if (ray.intersection.none || (t < ray.intersection.t_value && t > 0)) {
+			Point3D p = e + (t * d);
+			Vector3D n = Vector3D(p[0], p[1], p[2]);
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
-			Vector3D worldNormal = Vector3D(p[0], p[1], p[2]);
-			worldNormal.normalize();
-			ray.intersection.normal = transNorm(modelToWorld, worldNormal);
+			ray.intersection.normal = transNorm(modelToWorld, n);
 			return true;
 		}
 	} else {
-		double t1 = (-1 * B + sqrt(B * B - 4 * A * C)) / (2 * A);
-		double t2 = (-1 * B - sqrt(B * B - 4 * A * C)) / (2 * A);
-		Point3D p1 = e + t1 * d;
-		Point3D p2 = e + t2 * d;
+		double t1 = (-B + sqrt(det))/ (2 * A);
+		double t2 = (-B - sqrt(det))/ (2 * A);
 		if (t1 < t2) {
-			if (ray.intersection.none || t1 < ray.intersection.t_value) {
+			if (ray.intersection.none || (t1 < ray.intersection.t_value && t1 > 0)) {
+				Point3D p = e + (t1 * d);
+				Vector3D n = Vector3D(p[0], p[1], p[2]);
 				ray.intersection.none = false;
-				ray.intersection.point = modelToWorld * p1;
+				ray.intersection.point = modelToWorld * p;
 				ray.intersection.t_value = t1;
-				Vector3D worldNormal = Vector3D(p1[0], p1[1], p1[2]);
-				worldNormal.normalize();
-				ray.intersection.normal = transNorm(modelToWorld, worldNormal);
+				ray.intersection.normal = transNorm(modelToWorld, n);
 				return true;
 			}
 		} else {
-			printf("%f\n", ray.intersection.t_value);
-			if (ray.intersection.none || t2 < ray.intersection.t_value) {
+			if (ray.intersection.none || (t2 < ray.intersection.t_value && t2 > 0)) {
+				Point3D p = e + (t2 * d);
+				Vector3D n = Vector3D(p[0], p[1], p[2]);
 				ray.intersection.none = false;
-				ray.intersection.point = modelToWorld * p2;
+				ray.intersection.point = modelToWorld * p;
 				ray.intersection.t_value = t2;
-				Vector3D worldNormal = Vector3D(p2[0], p2[1], p2[2]);
-				worldNormal.normalize();
-				ray.intersection.normal = transNorm(modelToWorld, worldNormal);
+				ray.intersection.normal = transNorm(modelToWorld, n);
 				return true;
 			}
 		}
 	}
-
 	return false;
 }
 
