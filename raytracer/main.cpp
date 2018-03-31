@@ -1,5 +1,5 @@
 /***********************************************************
-	
+
 	Starter code for Assignment 3
 
 ***********************************************************/
@@ -8,21 +8,20 @@
 #include "raytracer.h"
 #include <string>
 #include <iostream>
-
-		#include <sstream>
+#include <sstream>
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
-	// Build your scene and setup your camera here, by calling 
+	// Build your scene and setup your camera here, by calling
 	// functions from Raytracer.  The code here sets up an example
 	// scene and renders it from two different view points, DO NOT
-	// change this if you're just implementing part one of the 
-	// assignment.  
+	// change this if you're just implementing part one of the
+	// assignment.
 	Raytracer raytracer;
 	LightList light_list;
-	Scene scene;   
+	Scene scene;
 
 	int width = 320;
 	int height = 240;
@@ -31,7 +30,7 @@ int main(int argc, char* argv[])
 		width = atoi(argv[1]);
 		height = atoi(argv[2]);
 	}
-	
+
 	// Define materials for shading.
 	Material gold(Color(0.3, 0.3, 0.3), Color(0.75164,0.60648,0.22648),
 		Color(0.628281, 0.555802, 0.366065),
@@ -43,7 +42,7 @@ int main(int argc, char* argv[])
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(0,0,5), Color(0.9,0.9,0.9));
 	light_list.push_back(pLight);
-	
+
 	// Add a unit square into the scene with material mat.
 	SceneNode* sphere = new SceneNode(new UnitSphere(), &gold);
 	scene.push_back(sphere);
@@ -63,7 +62,7 @@ int main(int argc, char* argv[])
 	plane->scale(Point3D(0, 0, 0), factor2);
 
 	// Render the scene, feel free to make the image smaller for
-	// testing purposes.	
+	// testing purposes.
 	Camera camera1(Point3D(0, 0, 1), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 60.0);
 	Image image1(width, height);
 	raytracer.render(camera1, scene, light_list, image1); //render 3D scene to image
@@ -76,9 +75,6 @@ int main(int argc, char* argv[])
 	image2.flushPixelBuffer("view2.bmp");
 
 
-
-
-
 	// Free memory
 	for (size_t i = 0; i < scene.size(); ++i) {
 		delete scene[i];
@@ -87,11 +83,6 @@ int main(int argc, char* argv[])
 	for (size_t i = 0; i < light_list.size(); ++i) {
 		delete light_list[i];
 	}
-
-	cout << "Please enter an integer value: ";
-	cout << 120;
-	cout << endl;
-
 
 	return 0;
 }

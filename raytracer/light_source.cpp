@@ -1,5 +1,5 @@
 /***********************************************************
-	
+
 	Starter code for Assignment 3
 
 	Implements light_source.h
@@ -10,79 +10,39 @@
 #include "light_source.h"
 
 void PointLight::shade(Ray3D& ray) {
-	// TODO: implement this function to fill in values for ray.col 
+	// TODO: implement this function to fill in values for ray.col
 	// using phong shading.  Make sure your vectors are normalized, and
 	// clamp colour values to 1.0.
 	//
-	// It is assumed at this point that the intersection information in ray 
-	// is available.  So be sure that traverseScene() is called on the ray 
+	// It is assumed at this point that the intersection information in ray
+	// is available.  So be sure that traverseScene() is called on the ray
 	// before this function.
 
-/*	Color col = ray.col; 
-
-	Color gl_FragColor = col;
-	Vector3D directionOfLightSource = normalize(lightPos - vertPos);
-
-	//Diffuse
-	float diffuseIntensity = Kd  * max(0.0, dot(directionOfLightSource.xyz,  normalize(normalInterp).xyz));
-
-	vec3 newDiffuseColor = diffuseColor;
-	newDiffuseColor = diffuseColor * diffuseIntensity;
-
-	gl_FragColor = gl_FragColor + vec4(newDiffuseColor, 0.0);
-
-
-	//Specular
-	vec3 newSpecular = specularColor;
-	vec3 vectorB = normalize(vec3(0.0,0.0,0.0) - vertPos);
-
-	vec3 vectorR = normalize(reflect(-directionOfLightSource, normalInterp));
-	float specularIntensity = Ks  * pow(max(0.0, dot(vectorR.xyz, vectorB.xyz)), shininessVal);
-
-
-	newSpecular = newSpecular * specularIntensity;
-
-	gl_FragColor = gl_FragColor + vec4(newSpecular, 0.0);*/
-
-/*
-	Color newAmb = ((ray.intersection.mat)->ambient + this->col_ambient);
-	Color newDif = ((ray.intersection.mat)->diffuse + this->col_diffuse);
-	//Color newSpe = ((ray.intersection.mat)->specular + this->col_specular).clamp();
-	newAmb.clamp();
-	newDif.clamp();
-
-	Color newCol =  newAmb + newDif ;
-	newCol.clamp();*/
+	// vec3 N = normalize(normalInterp);
+    // vec3 L = normalize(lightPos - vertPos);
+    // float diffuse = Kd * max(0.0, dot(N, L));
+	//
+    // vec3 R = normalize(-L + 2.0 * dot(N, L) * N);
+    // vec3 B = normalize(viewVec);
+    // float specular = Ks * pow(max(0.0, dot(R, B)), shininessVal);
+    // gl_FragColor = vec4(Ka * ambientColor + diffuseColor * diffuse + specular * specularColor, 1.0);
 
 	//Diffuse
-	Vector3D directionOfLightSource = Vector3D(this->pos - ray.intersection.point);
-	directionOfLightSource.normalize();
-	Vector3D norm = ray.intersection.normal;
-	norm.normalize();
-	float diffuseIntensity =  0.0;
-	if (directionOfLightSource.dot(norm) > 0.0) {
-		diffuseIntensity = directionOfLightSource.dot(norm);
-	}
-	Color newDif = diffuseIntensity * (ray.intersection.mat)->diffuse;	
-	newDif.clamp();
+	Vector3D N = ray.intersection.normal;
+	Vector3D L = Vector3D(this->get_position() - ray.intersection.point);
+	N.normalize();
+	L.normalize();
+	Color diffuse = N.dot(L) * this->col_diffuse;
 
+	Vector3D R = -1 * L + 2 * N.dot(L) * N;
+	Vector3D B = ray.origin - ray.intersection.point;
+	R.normalize();
+	B.normalize();
+	Color specular = pow(fmax(0, R.dot(B)), (ray.intersection.mat)->specular_exp) * this->col_specular;
 
-	//Specular 
-	Vector3D vectorB = Vector3D(0.0,0.0,0.0) - Vector3D(ray.intersection.point[0],ray.intersection.point[1],ray.intersection.point[2]);
-	vectorB.normalize();
-	Vector3D vectorR = -directionOfLightSource - 2.0 * norm.dot(-directionOfLightSource) * norm;
-	vectorR.normalize();
-	float specularIntensity = 0.0;
-	if (vectorR.dot(vectorB) > 0.0) {
-		specularIntensity = pow(vectorR.dot(vectorB), (ray.intersection.mat)->specular_exp);
-	}
-	Color newSpe = specularIntensity * (ray.intersection.mat)->specular;
-	newSpe.clamp();
+	Color ambient = (ray.intersection.mat)->ambient * this->col_ambient;
 
-
-	Color total = newSpe + newDif + (ray.intersection.mat)->ambient;
-	total.clamp();
-	ray.col = total;
-
+	Color c = diffuse * (ray.intersection.mat)->diffuse + specular * (ray.intersection.mat)->specular + ambient;
+	c.clamp();
+	ray.col = c;
 }
-

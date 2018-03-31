@@ -16,7 +16,6 @@
 void Raytracer::traverseScene(Scene& scene, Ray3D& ray)  {
 	for (size_t i = 0; i < scene.size(); ++i) {
 		SceneNode* node = scene[i];
-
 		if (node->obj->intersect(ray, node->worldToModel, node->modelToWorld)) {
 			ray.intersection.mat = node->mat;
 		}
@@ -35,7 +34,7 @@ void Raytracer::computeTransforms(Scene& scene) {
 }
 
 void Raytracer::computeShading(Ray3D& ray, LightList& light_list) {
-	for (size_t  i = 0; i < light_list.size(); ++i) {
+	for (size_t i = 0; i < light_list.size(); ++i) {
 		LightSource* light = light_list[i];
 
 		// Each lightSource provides its own shading function.
@@ -82,9 +81,9 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 			Ray3D ray;
 			// TODO: Convert ray to world space
+
 			Point3D worldOri = viewToWorld * origin;
 			Vector3D worldDir = viewToWorld * (imagePlane - origin);
-			worldDir.normalize();
 			ray.origin = worldOri;
 			ray.dir = worldDir;
 
