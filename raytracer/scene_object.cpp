@@ -30,7 +30,6 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	Vector3D d = worldToModel * ray.dir;
 	Vector3D ec = Vector3D(e[0], e[1], e[2]);
 	Vector3D n = Vector3D(0.0, 0.0, 1.0); // already a unit normal
-
 	double t = (-ec).dot(n) / d.dot(n);
 	Point3D p = e + t * d;
 	if (p[0] <= 0.5 && p[0] >= -0.5 && p[1] <= 0.5 && p[1] >= -0.5) {
@@ -38,7 +37,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
-			ray.intersection.normal = transNorm(modelToWorld, n);
+			ray.intersection.normal = transNorm(worldToModel, n);
 			return true;
 		}
 	}
@@ -66,42 +65,19 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	double det = pow(B, 2) - (4 * A * C);
 	if (det < 0) {
 		return false;
-	} else if (det == 0) {
-		double t = -B / (2 * A);
+	} else {
+		double t = (-B - sqrt(det)) / (2 * A);
 		if (ray.intersection.none || (t < ray.intersection.t_value && t > 0)) {
 			Point3D p = e + (t * d);
 			Vector3D n = Vector3D(p[0], p[1], p[2]);
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
-			ray.intersection.normal = transNorm(modelToWorld, n);
+			ray.intersection.normal = transNorm(worldToModel, n);
 			return true;
 		}
-	} else {
-		double t1 = (-B + sqrt(det))/ (2 * A);
-		double t2 = (-B - sqrt(det))/ (2 * A);
-		if (t1 < t2) {
-			if (ray.intersection.none || (t1 < ray.intersection.t_value && t1 > 0)) {
-				Point3D p = e + (t1 * d);
-				Vector3D n = Vector3D(p[0], p[1], p[2]);
-				ray.intersection.none = false;
-				ray.intersection.point = modelToWorld * p;
-				ray.intersection.t_value = t1;
-				ray.intersection.normal = transNorm(modelToWorld, n);
-				return true;
-			}
-		} else {
-			if (ray.intersection.none || (t2 < ray.intersection.t_value && t2 > 0)) {
-				Point3D p = e + (t2 * d);
-				Vector3D n = Vector3D(p[0], p[1], p[2]);
-				ray.intersection.none = false;
-				ray.intersection.point = modelToWorld * p;
-				ray.intersection.t_value = t2;
-				ray.intersection.normal = transNorm(modelToWorld, n);
-				return true;
-			}
-		}
 	}
+
 	return false;
 }
 
