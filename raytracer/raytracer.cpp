@@ -88,7 +88,30 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			ray.dir = d;
 
 			Color col = shadeRay(ray, scene, light_list);
-			image.setColorAtPixel(i, j, col);
+
+
+			//code for shadow
+			Color finalCol = Color(0,0,0);
+			if (!ray.intersection.none) {
+				for (size_t i = 0; i < light_list.size(); ++i) {
+					LightSource* light = light_list[i];
+					Ray3D shadowRay;
+					shadowRay.origin = ray.intersection.point;
+					shadowRay.dir = light->get_position() - shadowRay.origin;
+					shadowRay.dir.normalize();
+
+					traverseScene(scene, shadowRay);
+
+					if (shadowRay.intersection.none != false) {
+						finalCol = finalCol + col;
+					}
+					
+				}
+					
+			}
+
+
+			image.setColorAtPixel(i, j, finalCol);
 		}
 	}
 }
