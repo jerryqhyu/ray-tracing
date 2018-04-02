@@ -43,19 +43,35 @@ void Raytracer::computeShading(Ray3D& ray, LightList& light_list) {
 	}
 }
 
-Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list) {
+Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
 	Color col(0.0, 0.0, 0.0);
 	traverseScene(scene, ray);
 
 	// Don't bother shading if the ray didn't hit
 	// anything.
-	if (!ray.intersection.none) {
+	/*if (!ray.intersection.none) {
 		computeShading(ray, light_list);
 		col = ray.col;
-	}
+	}*/
 
 	// You'll want to call shadeRay recursively (with a different ray,
 	// of course) here to implement reflection/refraction effects.
+	if (ray.intersection.none || depth > 2) {
+		//col = ray.col;
+		return col;
+	} else {
+		computeShading(ray, light_list);
+		col = ray.col;
+		Vector3D inter = ray.intersection.point - ray.origin;
+		Vector3D reflectRay = inter - 2 * ray.intersection.normal.dot(inter) * ray.intersection.normal;
+		Ray3D reflect;
+		reflect.origin = ray.intersection.point;
+		reflect.dir = reflectRay;
+		reflect.dir.normalize();
+		col = col +  shadeRay(reflect, scene, light_list, depth + 1);
+		col.clamp();
+		
+	}
 
 	return col;
 }
@@ -87,8 +103,29 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			ray.origin = e;
 			ray.dir = d;
 
-			Color col = shadeRay(ray, scene, light_list);
-			image.setColorAtPixel(i, j, col);
+			Color col = shadeRay(ray, scene, light_list, 0);
+
+
+			//code for hard shadow
+			Color finalCol = Color(0,0,0);
+			if (!ray.intersection.none) {
+				for (size_t i = 0; i < light_list.size(); ++i) {
+					LightSource* light = light_list[i];
+					Ray3D shadowRay;
+					shadowRay.origin = ray.intersection.point;
+					shadowRay.dir = light->get_position() - shadowRay.origin;
+					shadowRay.dir.normalize();
+
+					traverseScene(scene, shadowRay);
+
+					if (shadowRay.intersection.none != false) {
+						finalCol = finalCol + col;
+					}
+				}
+			}
+
+
+			image.setColorAtPixel(i, j, finalCol);
 		}
 	}
 }

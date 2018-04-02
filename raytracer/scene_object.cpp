@@ -33,7 +33,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	double t = (-ec).dot(n) / d.dot(n);
 	Point3D p = e + t * d;
 	if (p[0] <= 0.5 && p[0] >= -0.5 && p[1] <= 0.5 && p[1] >= -0.5) {
-		if (ray.intersection.none || t < ray.intersection.t_value) {
+		if ((ray.intersection.none || t < ray.intersection.t_value) && t > 0.001) {
 			ray.intersection.none = false;
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
@@ -41,7 +41,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			return true;
 		}
 	}
-
+	//ray.intersection.none = true;
 	return false;
 }
 
@@ -64,10 +64,11 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	double C = eminusc.dot(eminusc) - 1;
 	double det = pow(B, 2) - (4 * A * C);
 	if (det < 0) {
+		//ray.intersection.none = true;
 		return false;
 	} else {
 		double t = (-B - sqrt(det)) / (2 * A);
-		if (ray.intersection.none || (t < ray.intersection.t_value && t > 0)) {
+		if ((ray.intersection.none || (t < ray.intersection.t_value && t > 0)) && t > 0.001) {
 			Point3D p = e + (t * d);
 			Vector3D n = Vector3D(p[0], p[1], p[2]);
 			ray.intersection.none = false;
@@ -77,7 +78,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			return true;
 		}
 	}
-
+	//ray.intersection.none = true;
 	return false;
 }
 
