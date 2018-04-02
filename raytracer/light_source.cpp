@@ -43,6 +43,7 @@ void PointLight::shade(Ray3D& ray) {
 	Color ambient = 1 * this->col_ambient;
 
 	Color c = diffuse * (ray.intersection.mat)->diffuse + specular * (ray.intersection.mat)->specular + ambient * (ray.intersection.mat)->ambient;
-	c.clamp();
-	ray.col = c;
+
+	ray.col = ray.col + c;
+	ray.col.clamp();
 }
