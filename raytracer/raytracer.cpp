@@ -79,7 +79,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 			reflectRay.dir = reflectDir;
 			col = col + shadeRay(reflectRay, scene, light_list, depth--);
 		}
-
+		
 		col.clamp();
 	}
 
