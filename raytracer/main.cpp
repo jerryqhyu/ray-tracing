@@ -38,6 +38,9 @@ int main(int argc, char* argv[])
 	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
 		Color(0.316228,0.316228,0.316228),
 		12.8);
+	Material mirror(Color(0, 0, 0), Color(0,0,0),
+		Color(1,1,1),
+		50);
 
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(0,0,5), Color(0.9,0.9,0.9));
@@ -46,6 +49,8 @@ int main(int argc, char* argv[])
 	// Add a unit square into the scene with material mat.
 	SceneNode* sphere = new SceneNode(new UnitSphere(), &gold);
 	scene.push_back(sphere);
+	SceneNode* sphere2 = new SceneNode(new UnitSphere(), &mirror);
+	scene.push_back(sphere2);
 	SceneNode* plane = new SceneNode(new UnitSquare(), &jade);
 	scene.push_back(plane);
 
@@ -55,6 +60,9 @@ int main(int argc, char* argv[])
 	sphere->rotate('x', -45);
 	sphere->rotate('z', 45);
 	sphere->scale(Point3D(0, 0, 0), factor1);
+
+	sphere2->translate(Vector3D(-1, 0, -3));
+	sphere2->rotate('z', 45);
 
 	double factor2[3] = { 6.0, 6.0, 6.0 };
 	plane->translate(Vector3D(0, 0, -7));
