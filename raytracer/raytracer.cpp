@@ -66,20 +66,21 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 			shadowRay.origin = ray.intersection.point;
 			shadowRay.dir = light->get_position() - shadowRay.origin;
 			traverseScene(scene, shadowRay);
-			if (shadowRay.intersection.none) {
+			if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
 				col = col + ray.col;
 			}
 		}
 
 		if (depth > 0) {
-			Vector3D inter = ray.intersection.point - ray.origin;
-			Vector3D reflectDir = inter - 2 * ray.intersection.normal.dot(inter) * ray.intersection.normal;
+			Vector3D raydir = Vector3D(ray.dir);
+			raydir.normalize();
+			Vector3D reflectDir = raydir + 2 * ray.intersection.normal.dot(-1 * raydir) * ray.intersection.normal;
 			Ray3D reflectRay;
 			reflectRay.origin = ray.intersection.point;
 			reflectRay.dir = reflectDir;
-			col = col + shadeRay(reflectRay, scene, light_list, depth--);
+			col = col + 0.4 * shadeRay(reflectRay, scene, light_list, depth--);
 		}
-		
+
 		col.clamp();
 	}
 
@@ -113,7 +114,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			ray.origin = e;
 			ray.dir = d;
 
-			Color col = shadeRay(ray, scene, light_list, 3);
+			Color col = shadeRay(ray, scene, light_list, 10);
 
 			image.setColorAtPixel(i, j, col);
 		}

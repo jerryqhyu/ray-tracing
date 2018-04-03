@@ -30,6 +30,8 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	Vector3D d = worldToModel * ray.dir;
 	Vector3D ec = Vector3D(e[0], e[1], e[2]);
 	Vector3D n = Vector3D(0.0, 0.0, 1.0); // already a unit normal
+	double multiplier = d.dot(n) < 0 ? 1 : -1;
+	n = multiplier * n;
 	double t = (-ec).dot(n) / d.dot(n);
 	Point3D p = e + t * d;
 	if (p[0] <= 0.5 && p[0] >= -0.5 && p[1] <= 0.5 && p[1] >= -0.5) {
@@ -41,7 +43,6 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			return true;
 		}
 	}
-	//ray.intersection.none = true;
 	return false;
 }
 
@@ -64,7 +65,6 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 	double C = eminusc.dot(eminusc) - 1;
 	double det = pow(B, 2) - (4 * A * C);
 	if (det < 0) {
-		//ray.intersection.none = true;
 		return false;
 	} else {
 		double t = (-B - sqrt(det)) / (2 * A);
@@ -78,7 +78,6 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			return true;
 		}
 	}
-	//ray.intersection.none = true;
 	return false;
 }
 
