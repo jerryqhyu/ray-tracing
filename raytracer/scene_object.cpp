@@ -40,6 +40,7 @@ bool UnitSquare::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
 			ray.intersection.normal = transNorm(worldToModel, n);
+			ray.intersection.normal.normalize();
 			return true;
 		}
 	}
@@ -75,6 +76,7 @@ bool UnitSphere::intersect(Ray3D& ray, const Matrix4x4& worldToModel,
 			ray.intersection.point = modelToWorld * p;
 			ray.intersection.t_value = t;
 			ray.intersection.normal = transNorm(worldToModel, n);
+			ray.intersection.normal.normalize();
 			return true;
 		}
 	}

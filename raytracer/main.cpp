@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Define materials for shading.
-	Material gold(Color(0.3, 0.3, 0.3), Color(0.75164,0.60648,0.22648),
+	Material gold(Color(0.1, 0.1, 0.1), Color(0.75164,0.60648,0.22648),
 		Color(0.628281, 0.555802, 0.366065),
 		51.2);
 	Material jade(Color(0, 0, 0), Color(0.54,0.89,0.63),
@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 		999);
 
 	// Defines a point light source.
-	PointLight* pLight = new PointLight(Point3D(-5,-5,-5), Color(0.9,0.9,0.9));
+	PointLight* pLight = new PointLight(Point3D(1,1,1), Color(0.9,0.9,0.9));
 	light_list.push_back(pLight);
 
 	// Add a unit square into the scene with material mat.
@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 	image1.flushPixelBuffer("view1.bmp"); //save rendered image to file
 
 	// Render it from a different point of view.
-	Camera camera2(Point3D(-1, 2, 4), Vector3D(-0.5, -1, -2), Vector3D(0, 1, 0), 75.0);
+	Camera camera2(Point3D(7.7, 7.7, 7.7), Vector3D(-0.5, -1, -1), Vector3D(0, 1, 0), 60.0);
 	Image image2(width, height);
 	raytracer.render(camera2, scene, light_list, image2);
 	image2.flushPixelBuffer("view2.bmp");

@@ -56,9 +56,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 
 	// You'll want to call shadeRay recursively (with a different ray,
 	// of course) here to implement reflection/refraction effects.
-	if (ray.intersection.none) {
-		return col;
-	} else {
+	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
 		for (size_t i = 0; i < light_list.size(); ++i) {
 			LightSource* light = light_list[i];
@@ -76,9 +74,9 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 			raydir.normalize();
 			Vector3D reflectDir = raydir + 2 * ray.intersection.normal.dot(-1 * raydir) * ray.intersection.normal;
 			Ray3D reflectRay;
-			reflectRay.origin = ray.intersection.point;
-			reflectRay.dir = reflectDir;
-			col = col + 0.4 * shadeRay(reflectRay, scene, light_list, depth--);
+			reflectRay.origin = Point3D(ray.intersection.point);
+			reflectRay.dir = Vector3D(reflectDir);
+			col = col + 0.1 * shadeRay(reflectRay, scene, light_list, depth--);
 		}
 
 		col.clamp();
@@ -114,7 +112,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			ray.origin = e;
 			ray.dir = d;
 
-			Color col = shadeRay(ray, scene, light_list, 10);
+			Color col = shadeRay(ray, scene, light_list, 1);
 
 			image.setColorAtPixel(i, j, col);
 		}
