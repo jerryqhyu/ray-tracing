@@ -76,7 +76,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 			Ray3D reflectRay;
 			reflectRay.origin = Point3D(ray.intersection.point);
 			reflectRay.dir = Vector3D(reflectDir);
-			col = col + 0.1 * shadeRay(reflectRay, scene, light_list, depth--);
+			col = col + 0.65 * shadeRay(reflectRay, scene, light_list, depth--);
 		}
 
 		col.clamp();
@@ -94,6 +94,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	viewToWorld = camera.initInvViewMatrix();
 
 	// Construct a ray for each pixel.
+	#pragma omp parallel for
 	for (int i = 0; i < image.height; i++) {
 		for (int j = 0; j < image.width; j++) {
 			// Sets up ray origin and direction in view space,
@@ -112,7 +113,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			ray.origin = e;
 			ray.dir = d;
 
-			Color col = shadeRay(ray, scene, light_list, 1);
+			Color col = shadeRay(ray, scene, light_list, 20);
 
 			image.setColorAtPixel(i, j, col);
 		}
