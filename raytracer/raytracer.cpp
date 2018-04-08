@@ -105,17 +105,36 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
 			imagePlane[2] = -1;
 
-			Ray3D ray;
+			Color totalCol = Color(0, 0, 0);
+
+			//Code for anti-alising
+			for (int k = 0; k < 9; k++) {
+
+				double ri = ((double) rand() / (RAND_MAX));
+				double rj = ((double) rand() / (RAND_MAX));
+				double newI = i + ri * 0.333 + k % 2 * 0.333;
+				double newJ = j + rj * 0.333 + k % 2 * 0.333;
+				imagePlane[0] = (-double(image.width)/2 + 0.5 + newJ)/factor;
+				imagePlane[1] = (-double(image.height)/2 + 0.5 + newI)/factor;
+				imagePlane[2] = -1;
+				Ray3D ray;
 			// TODO: Convert ray to world space
 
-			Point3D e = viewToWorld * origin;
-			Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
-			ray.origin = e;
-			ray.dir = d;
+				Point3D e = viewToWorld * origin;
+				Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+				ray.origin = e;
+				ray.dir = d;
 
-			Color col = shadeRay(ray, scene, light_list, 20);
+				Color col = shadeRay(ray, scene, light_list, 20); 
+				totalCol = totalCol + col;
+				//printf("%f", k % 2 * 0.5);
+			
+			}
+			
+			
 
-			image.setColorAtPixel(i, j, col);
+			Color avgCol = Color(totalCol[0]/9, totalCol[1]/9, totalCol[2]/9);
+			image.setColorAtPixel(i, j, avgCol);
 		}
 	}
 }
