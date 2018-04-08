@@ -59,15 +59,21 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
 		for (size_t i = 0; i < light_list.size(); ++i) {
-			LightSource* light = light_list[i];
-			Ray3D shadowRay;
-			shadowRay.origin = ray.intersection.point;
-			shadowRay.dir = light->get_position() - shadowRay.origin;
-			traverseScene(scene, shadowRay);
-			if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
-				col = col + ray.col;
+			for (int m = 0; m <3; m++){
+				for (int n = 0; n <3; n++){
+					LightSource* light = light_list[i];
+					Ray3D shadowRay;
+					shadowRay.origin = ray.intersection.point;
+					shadowRay.dir = Point3D(light->get_position()[0] + m,light->get_position()[1] + n, light->get_position()[2]) - shadowRay.origin;
+					traverseScene(scene, shadowRay);
+					if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
+						col = col + ray.col;
+					}
+				}
 			}
 		}
+
+		col = Color(col[0]/9, col[1]/9, col[2]/9);
 
 		if (depth > 0) {
 			Vector3D raydir = Vector3D(ray.dir);
@@ -125,7 +131,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 				ray.origin = e;
 				ray.dir = d;
 
-				Color col = shadeRay(ray, scene, light_list, 20); 
+				Color col = shadeRay(ray, scene, light_list, 0); 
 				totalCol = totalCol + col;
 				//printf("%f", k % 2 * 0.5);
 			
