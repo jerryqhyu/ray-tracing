@@ -47,25 +47,24 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	Color col(0.0, 0.0, 0.0);
 	traverseScene(scene, ray);
 
-	// Don't bother shading if the ray didn't hit
-	// anything.
-	/*if (!ray.intersection.none) {
-		computeShading(ray, light_list);
-		col = ray.col;
-	}*/
-
 	// You'll want to call shadeRay recursively (with a different ray,
 	// of course) here to implement reflection/refraction effects.
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
+		#pragma omp parallel for
 		for (size_t i = 0; i < light_list.size(); ++i) {
 			LightSource* light = light_list[i];
-			Ray3D shadowRay;
-			shadowRay.origin = ray.intersection.point;
-			shadowRay.dir = light->get_position() - shadowRay.origin;
-			traverseScene(scene, shadowRay);
-			if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
-				col = col + ray.col;
+
+			int numShadowRay = 5;
+			#pragma omp parallel for
+			for (size_t j = 0; j < numShadowRay; j++) {
+				Ray3D shadowRay;
+				shadowRay.dir = light->get_position() - ray.intersection.point;
+				shadowRay.origin = ray.intersection.point + 0.01 * shadowRay.dir;
+				traverseScene(scene, shadowRay);
+				if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
+					col = col + double(1)/numShadowRay * ray.col;
+				}
 			}
 		}
 
@@ -85,37 +84,59 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	return col;
 }
 
-void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image) {
+void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Image& image, int degree) {
 	computeTransforms(scene);
 
 	Matrix4x4 viewToWorld;
 	double factor = (double(image.height)/2)/tan(camera.fov*M_PI/360.0);
 
 	viewToWorld = camera.initInvViewMatrix();
-
 	// Construct a ray for each pixel.
+	PointList ray_origin_offsets = SubPixelPoints(degree);
+
 	#pragma omp parallel for
 	for (int i = 0; i < image.height; i++) {
+		#pragma omp parallel for
 		for (int j = 0; j < image.width; j++) {
 			// Sets up ray origin and direction in view space,
 			// image plane is at z = -1.
 			Point3D origin(0, 0, 0);
 			Point3D imagePlane;
-			imagePlane[0] = (-double(image.width)/2 + 0.5 + j)/factor;
-			imagePlane[1] = (-double(image.height)/2 + 0.5 + i)/factor;
-			imagePlane[2] = -1;
-
 			Ray3D ray;
-			// TODO: Convert ray to world space
+			Color col(0,0,0);
 
-			Point3D e = viewToWorld * origin;
-			Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
-			ray.origin = e;
-			ray.dir = d;
-
-			Color col = shadeRay(ray, scene, light_list, 20);
+			#pragma omp parallel for
+			for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
+				Point3D point = *(ray_origin_offsets[n]);
+				imagePlane[0] = (-double(image.width)/2 + point[0] + j)/factor;
+				imagePlane[1] = (-double(image.height)/2 + point[1] + i)/factor;
+				imagePlane[2] = -1;
+				Point3D e = viewToWorld * origin;
+				Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+				ray.origin = e;
+				ray.dir = d;
+				col = col + (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+			}
 
 			image.setColorAtPixel(i, j, col);
 		}
 	}
+}
+
+PointList Raytracer::SubPixelPoints(int degree) {
+	PointList pts;
+	if (degree <= 1) {
+		pts.push_back(new Point3D(0.5, 0.5, 0));
+	} else {
+		double d = (double)1 / degree;
+		for (int i = 0; i < degree; i++) {
+			for (int j = 0; j < degree; j++) {
+				double randX = ((double) rand() / (RAND_MAX));
+				double randY = ((double) rand() / (RAND_MAX));
+				pts.push_back(new Point3D((i + randX) * d, (j + randY) * d, 0));
+			}
+		}
+	}
+
+	return pts;
 }
