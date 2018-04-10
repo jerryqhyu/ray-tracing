@@ -99,6 +99,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 	viewToWorld = camera.initInvViewMatrix();
 
+
 	// Construct a ray for each pixel.
 	#pragma omp parallel for
 	for (int i = 0; i < image.height; i++) {
@@ -113,7 +114,10 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 			Color totalCol = Color(0, 0, 0);
 
-			//Code for anti-alising
+
+
+
+/*			//Code for anti-alising
 			for (int k = 0; k < 9; k++) {
 
 				double ri = ((double) rand() / (RAND_MAX));
@@ -136,10 +140,39 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 				//printf("%f", k % 2 * 0.5);
 			
 			}
-			
+			Color avgCol = Color(totalCol[0]/9, totalCol[1]/9, totalCol[2]/9);*/
+			/*Ray3D ray;
+			Point3D e = viewToWorld * origin;
+			Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+			ray.origin = e;
+			ray.dir = d;*/
+
+
+
+			//Code for dof
+			int F = 10;
+			Vector3D raydir = imagePlane - origin;
+			raydir.normalize();
+			Point3D C = origin + F * raydir;
+			int R = 1;
+			for (int a = 0; a < 50; a++) {
+				double r = ((double) rand() / (RAND_MAX));
+				//printf("%d\n", r);
+				Point3D ranPoint = Point3D(origin[0], origin[1] + r, origin[2]);
+				//printf("%f, %f, %f\n", ranPoint[0], ranPoint[1], ranPoint[2]);
+				Vector3D secondDir = C - ranPoint;
+				Ray3D secondRay;
+				secondRay.origin = viewToWorld * ranPoint;
+				secondRay.dir = viewToWorld * secondDir;
+				secondRay.dir.normalize();
+				totalCol = totalCol + shadeRay(secondRay, scene, light_list, 0);
+
+			}
 			
 
-			Color avgCol = Color(totalCol[0]/9, totalCol[1]/9, totalCol[2]/9);
+
+			//Color col = shadeRay(secondRay, scene, light_list, 0);
+			Color avgCol = Color(totalCol[0]/50, totalCol[1]/50, totalCol[2]/50); 
 			image.setColorAtPixel(i, j, avgCol);
 		}
 	}
