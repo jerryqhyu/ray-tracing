@@ -92,7 +92,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	Point3D imagePlane;
 
 	int timeTicks = 24;
-	Vector3D moveDir = Vector3D(0, 0, -0.5);
+	Vector3D moveDir = Vector3D(0, 0, 0.5);
 
 	#pragma omp parallel for
 	for (int i = 0; i < image.height; i++) {
@@ -102,11 +102,6 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			Point3D origin(0, 0, 0);
 			Color col(0,0,0);
 			for (size_t t = 0; t < timeTicks; t++) {
-				// scene[1]->translate(double(1)/timeTicks * moveDir);
-				// printf("%f %f %f\n", scene[1]->trans[0][3], scene[1]->trans[1][3], scene[1]->trans[2][3]);
-				// Sets up ray origin and direction in view space,
-				// image plane is at z = -1.
-
 				#pragma omp parallel for
 				for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
 					Point3D point = *(ray_origin_offsets[n]);
@@ -161,18 +156,12 @@ Ray3D Raytracer::ConstructGlossyReflectRay(Ray3D ray) {
 	u.normalize();
 	Vector3D v = R.cross(u);
 	v.normalize();
-	// double theta = 2 * M_PI * ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
-	// double phi = 2 * M_PI * ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
-	// double x = sin(theta) * cos(phi);
-	// double y = sin(theta) * sin(phi);
-	// double z = cos(theta);
 	double x = -(ray.intersection.mat) -> roughness/2 + ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
 	double y = -(ray.intersection.mat) -> roughness/2 + ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
 	double z = 1;
 	Vector3D sampledDir = x * u + y * v + z * R;
 	sampledDir.normalize();
 	if (sampledDir.dot(R) < 0) {
-		// printf("%s %f %f %f\n", "wrong dir", x, y, z);
 		sampledDir = x * u + y * v - z * R;
 	}
 	Ray3D reflectRay;
