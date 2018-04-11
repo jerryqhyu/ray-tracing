@@ -58,6 +58,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 			LightSource* light = light_list[i];
 			#pragma omp parallel for
 			for (size_t j = 0; j < numShadowRay; j++) {
+				//Code for soft shadow for AreaLight
 				Ray3D shadowRay = ConstructShadowRay(light, ray);
 				traverseScene(scene, shadowRay);
 				if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
@@ -67,6 +68,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 		}
 
 		if (depth > 0) {
+			//Code for glossy reflection
 			#pragma omp parallel for
 			for (size_t i = 0; i < numReflectRay; i++) {
 				Ray3D reflectRay = ConstructGlossyReflectRay(ray);
@@ -91,7 +93,9 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	PointList ray_origin_offsets = SubPixelPoints(degree);
 	Point3D imagePlane;
 
-	int timeTicks = 24;
+	int timeTicks = 1;
+	int F = 5;
+	int dofSamples = 75;
 	Vector3D moveDir = Vector3D(0, 0, 0.5);
 
 	#pragma omp parallel for
@@ -101,20 +105,42 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			#pragma omp parallel for
 			Point3D origin(0, 0, 0);
 			Color col(0,0,0);
+			//Code for motion blur of camera
+			#pragma omp parallel for
 			for (size_t t = 0; t < timeTicks; t++) {
+				//Code for antialiasing
 				#pragma omp parallel for
 				for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
 					Point3D point = *(ray_origin_offsets[n]);
-					Ray3D ray;
 					imagePlane[0] = (-double(image.width)/2 + point[0] + j)/factor;
 					imagePlane[1] = (-double(image.height)/2 + point[1] + i)/factor;
 					imagePlane[2] = -1;
-					Point3D e = viewToWorld * origin;
-					Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
-					d.normalize();
-					ray.origin = e + double(t)/timeTicks * moveDir;
-					ray.dir = d;
-					col = col + (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+
+					//Code for dof
+					#pragma omp parallel for
+					if (dofSamples > 0) {
+						Vector3D worldSpaceRayDir = imagePlane - origin;
+						worldSpaceRayDir.normalize();
+						Point3D C = origin + F * worldSpaceRayDir;
+						for (int d = 0; d < dofSamples; d++) {
+							double r = ((double) rand() / (RAND_MAX));
+							Point3D randomOrigin = Point3D(origin[0], origin[1] + r, origin[2]) + double(t)/timeTicks * moveDir;;
+							Vector3D secondDir = C - randomOrigin;
+							Ray3D secondRay;
+							secondRay.origin = viewToWorld * randomOrigin;
+							secondRay.dir = viewToWorld * C - viewToWorld * randomOrigin;
+							secondRay.dir.normalize();
+							col = col + (double(1)/dofSamples) * (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(secondRay, scene, light_list, 0);
+						}
+					} else {
+						Ray3D ray;
+						Point3D e = viewToWorld * origin;
+						Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+						d.normalize();
+						ray.origin = e + double(t)/timeTicks * moveDir;
+						ray.dir = d;
+						col = col + (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+					}
 				}
 			}
 			image.setColorAtPixel(i, j, col);
