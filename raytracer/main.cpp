@@ -44,6 +44,9 @@ int main(int argc, char* argv[])
 	Material ruby(Color(0, 0, 0), Color(0.9,0,0),
 		Color(0.6, 0.6, 0.6),
 		25);
+	Material roughruby(Color(0, 0, 0), Color(0.9,0,0),
+		Color(0.6, 0.6, 0.6),
+		25);
 	Material mirror(Color(0, 0, 0), Color(0.15,0.15,0.15),
 		Color(1,1,1),
 		999);
@@ -64,8 +67,13 @@ int main(int argc, char* argv[])
 
 	SceneNode* s2 = new SceneNode(new UnitSphere(), &ruby);
 	scene.push_back(s2);
-	s2->translate(Vector3D(1, -4, 3));
+	s2->translate(Vector3D(-1, -2, 5));
 	s2->scale(Point3D(0, 0, 0), factor1);
+
+	SceneNode* roughrubysphere = new SceneNode(new UnitSphere(), &roughruby);
+	scene.push_back(roughrubysphere);
+	roughrubysphere->translate(Vector3D(1, -2, 5));
+	roughrubysphere->scale(Point3D(0, 0, 0), factor1);
 
 	SceneNode* s3 = new SceneNode(new UnitSphere(), &steel);
 	scene.push_back(s3);
@@ -123,7 +131,7 @@ int main(int argc, char* argv[])
 	p6->scale(Point3D(0, 0, 0), factor2);
 	p6->rotate('y', 90);
 
-	int deg = 3;
+	int deg = 0;
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.
 	Camera camera1(Point3D(0, 0, 7.99), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 90.0);

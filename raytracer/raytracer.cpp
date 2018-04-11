@@ -46,21 +46,19 @@ void Raytracer::computeShading(Ray3D& ray, LightList& light_list) {
 Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int depth) {
 	Color col(0.0, 0.0, 0.0);
 	traverseScene(scene, ray);
-
 	// You'll want to call shadeRay recursively (with a different ray,
 	// of course) here to implement reflection/refraction effects.
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
+		int numShadowRay = 1;
+		int numReflectRay = 50;
+
 		#pragma omp parallel for
 		for (size_t i = 0; i < light_list.size(); ++i) {
 			LightSource* light = light_list[i];
-
-			int numShadowRay = 1;
 			#pragma omp parallel for
 			for (size_t j = 0; j < numShadowRay; j++) {
-				Ray3D shadowRay;
-				shadowRay.dir = light->get_position() - ray.intersection.point;
-				shadowRay.origin = ray.intersection.point + 0.01 * shadowRay.dir;
+				Ray3D shadowRay = ConstructShadowRay(light, ray);
 				traverseScene(scene, shadowRay);
 				if (shadowRay.intersection.none || shadowRay.intersection.t_value > 1) {
 					col = col + double(1)/numShadowRay * ray.col;
@@ -69,13 +67,11 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 		}
 
 		if (depth > 0) {
-			Vector3D raydir = Vector3D(ray.dir);
-			raydir.normalize();
-			Vector3D reflectDir = raydir + 2 * ray.intersection.normal.dot(-1 * raydir) * ray.intersection.normal;
-			Ray3D reflectRay;
-			reflectRay.origin = Point3D(ray.intersection.point);
-			reflectRay.dir = Vector3D(reflectDir);
-			col = col + 0.65 * shadeRay(reflectRay, scene, light_list, depth--);
+			#pragma omp parallel for
+			for (size_t i = 0; i < numReflectRay; i++) {
+				Ray3D reflectRay = ConstructGlossyReflectRay(ray);
+				col = col + 0.5 * double(1)/numReflectRay * shadeRay(reflectRay, scene, light_list, --depth);
+			}
 		}
 
 		col.clamp();
@@ -116,7 +112,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 				d.normalize();
 				ray.origin = e;
 				ray.dir = d;
-				col = col + (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+				col = col + (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 1);
 			}
 
 			image.setColorAtPixel(i, j, col);
@@ -140,4 +136,33 @@ PointList Raytracer::SubPixelPoints(int degree) {
 	}
 
 	return pts;
+}
+
+Ray3D Raytracer::ConstructShadowRay(LightSource* light, Ray3D ray) {
+	Ray3D shadowRay;
+	shadowRay.dir = light->get_position() - ray.intersection.point;
+	shadowRay.origin = ray.intersection.point + 0.001 * shadowRay.dir;
+	return shadowRay;
+}
+
+Ray3D Raytracer::ConstructGlossyReflectRay(Ray3D ray) {
+	Vector3D raydir = Vector3D(ray.dir);
+	raydir.normalize();
+	Vector3D R = raydir + 2 * ray.intersection.normal.dot(-1 * raydir) * ray.intersection.normal;
+	R.normalize();
+	Vector3D u = R.cross(ray.intersection.normal);
+	u.normalize();
+	Vector3D v = R.cross(u);
+	v.normalize();
+	double theta = 2 * M_PI * ((double) rand() / (RAND_MAX) - 0.5) * (ray.intersection.mat)->roughness;
+	double phi = 2 * M_PI * ((double) rand() / (RAND_MAX) - 0.5) * (ray.intersection.mat)->roughness;
+	double x = sin(theta) * cos(phi);
+	double y = sin(theta) * sin(phi);
+	double z = cos(theta);
+	Vector3D sampledDir = x * u + y * v + z * R;
+	sampledDir.normalize();
+	Ray3D reflectRay;
+	reflectRay.dir = Vector3D(sampledDir);
+	reflectRay.origin = Point3D(ray.intersection.point) + 0.001 * reflectRay.dir;
+	return reflectRay;
 }

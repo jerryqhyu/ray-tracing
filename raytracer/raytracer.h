@@ -39,4 +39,10 @@ private:
 
 	// Get a list of 9 subpoint increments for antialiasing
 	PointList SubPixelPoints(int degree);
+
+	// Get a list of 9 subpoint increments for antialiasing
+	Ray3D ConstructShadowRay(LightSource* light, Ray3D ray);
+
+	// Get a list of 9 subpoint increments for antialiasing
+	Ray3D ConstructGlossyReflectRay(Ray3D ray);
 };
