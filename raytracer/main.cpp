@@ -131,7 +131,7 @@ int main(int argc, char* argv[])
 	p6->scale(Point3D(0, 0, 0), factor2);
 	p6->rotate('y', 90);
 
-	int deg = 0;
+	int deg = 2;
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.
 	Camera camera1(Point3D(0, 0, 7.99), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 90.0);

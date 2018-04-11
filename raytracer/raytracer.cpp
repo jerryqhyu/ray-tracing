@@ -50,8 +50,8 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	// of course) here to implement reflection/refraction effects.
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
-		int numShadowRay = 1;
-		int numReflectRay = 1;
+		int numShadowRay = 30;
+		int numReflectRay = 30;
 
 		#pragma omp parallel for
 		for (size_t i = 0; i < light_list.size(); ++i) {
@@ -95,7 +95,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 
 	int timeTicks = 1;
 	int F = 5;
-	int dofSamples = 75;
+	int dofSamples = 0;
 	Vector3D moveDir = Vector3D(0, 0, 0.5);
 
 	#pragma omp parallel for
@@ -139,7 +139,7 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 						d.normalize();
 						ray.origin = e + double(t)/timeTicks * moveDir;
 						ray.dir = d;
-						col = col + (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+						col = col + (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 5);
 					}
 				}
 			}
