@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 		25);
 	Material mirror(Color(0, 0, 0), Color(0.15,0.15,0.15),
 		Color(1,1,1),
-		999, 0.15);
+		999);
 
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(1,1,1), Color(0.75,0.75,0.75));

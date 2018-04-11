@@ -51,7 +51,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
 		int numShadowRay = 1;
-		int numReflectRay = 25;
+		int numReflectRay = 1;
 
 		#pragma omp parallel for
 		for (size_t i = 0; i < light_list.size(); ++i) {
@@ -89,32 +89,39 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 	viewToWorld = camera.initInvViewMatrix();
 	// Construct a ray for each pixel.
 	PointList ray_origin_offsets = SubPixelPoints(degree);
+	Point3D imagePlane;
+
+	int timeTicks = 24;
+	Vector3D moveDir = Vector3D(0, 0, -0.5);
 
 	#pragma omp parallel for
 	for (int i = 0; i < image.height; i++) {
 		#pragma omp parallel for
 		for (int j = 0; j < image.width; j++) {
-			// Sets up ray origin and direction in view space,
-			// image plane is at z = -1.
-			Point3D origin(0, 0, 0);
-			Point3D imagePlane;
-			Color col(0,0,0);
-
 			#pragma omp parallel for
-			for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
-				Point3D point = *(ray_origin_offsets[n]);
-				Ray3D ray;
-				imagePlane[0] = (-double(image.width)/2 + point[0] + j)/factor;
-				imagePlane[1] = (-double(image.height)/2 + point[1] + i)/factor;
-				imagePlane[2] = -1;
-				Point3D e = viewToWorld * origin;
-				Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
-				d.normalize();
-				ray.origin = e;
-				ray.dir = d;
-				col = col + (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 1);
-			}
+			Point3D origin(0, 0, 0);
+			Color col(0,0,0);
+			for (size_t t = 0; t < timeTicks; t++) {
+				// scene[1]->translate(double(1)/timeTicks * moveDir);
+				// printf("%f %f %f\n", scene[1]->trans[0][3], scene[1]->trans[1][3], scene[1]->trans[2][3]);
+				// Sets up ray origin and direction in view space,
+				// image plane is at z = -1.
 
+				#pragma omp parallel for
+				for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
+					Point3D point = *(ray_origin_offsets[n]);
+					Ray3D ray;
+					imagePlane[0] = (-double(image.width)/2 + point[0] + j)/factor;
+					imagePlane[1] = (-double(image.height)/2 + point[1] + i)/factor;
+					imagePlane[2] = -1;
+					Point3D e = viewToWorld * origin;
+					Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+					d.normalize();
+					ray.origin = e + double(t)/timeTicks * moveDir;
+					ray.dir = d;
+					col = col + (double(1)/timeTicks) * (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
+				}
+			}
 			image.setColorAtPixel(i, j, col);
 		}
 	}
