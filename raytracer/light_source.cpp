@@ -51,7 +51,7 @@ void AreaLight::shade(Ray3D& ray) {
 	Vector3D B = Vector3D(ray.origin - ray.intersection.point);
 	R.normalize();
 	B.normalize();
-	Color specular = 1 * pow(fmax(0, R.dot(B)), (ray.intersection.mat)->specular_exp) * this->col_specular;
+	Color specular = 0 * pow(fmax(0, R.dot(B)), (ray.intersection.mat)->specular_exp) * this->col_specular;
 
 	Color ambient = 1 * this->col_ambient;
 

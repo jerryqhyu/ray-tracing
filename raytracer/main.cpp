@@ -51,8 +51,8 @@ int main(int argc, char* argv[])
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(1,1,1), Color(0.75,0.75,0.75));
 	AreaLight* aLight = new AreaLight(Point3D(1,1,1), Color(0.75,0.75,0.75));
-	// light_list.push_back(pLight);
-	light_list.push_back(aLight);
+	light_list.push_back(pLight);
+	// light_list.push_back(aLight);
 
 	// Add a unit square into the scene with material mat.
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
 	p6->scale(Point3D(0, 0, 0), factor2);
 	p6->rotate('y', 90);
 
-	int deg = 0;
+	int deg = 3;
 	// Render the scene, feel free to make the image smaller for
 	// testing purposes.
 	Camera camera1(Point3D(0, 0, 7.99), Vector3D(0, 0, -1), Vector3D(0, 1, 0), 90.0);
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
 	// Render it from a different point of view.
 	Camera camera2(Point3D(7.7, 7.7, 7.7), Vector3D(-0.5, -1, -1), Vector3D(0, 1, 0), 60.0);
 	Image image2(width, height);
-	raytracer.render(camera2, scene, light_list, image2);
+	raytracer.render(camera2, scene, light_list, image2, deg);
 	image2.flushPixelBuffer("view2.bmp");
 	printf("%s\n", "image 2 done");
 

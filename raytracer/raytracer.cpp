@@ -55,7 +55,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 		for (size_t i = 0; i < light_list.size(); ++i) {
 			LightSource* light = light_list[i];
 
-			int numShadowRay = 5;
+			int numShadowRay = 1;
 			#pragma omp parallel for
 			for (size_t j = 0; j < numShadowRay; j++) {
 				Ray3D shadowRay;
@@ -102,17 +102,18 @@ void Raytracer::render(Camera& camera, Scene& scene, LightList& light_list, Imag
 			// image plane is at z = -1.
 			Point3D origin(0, 0, 0);
 			Point3D imagePlane;
-			Ray3D ray;
 			Color col(0,0,0);
 
 			#pragma omp parallel for
 			for (size_t n = 0; n < ray_origin_offsets.size(); n++) {
 				Point3D point = *(ray_origin_offsets[n]);
+				Ray3D ray;
 				imagePlane[0] = (-double(image.width)/2 + point[0] + j)/factor;
 				imagePlane[1] = (-double(image.height)/2 + point[1] + i)/factor;
 				imagePlane[2] = -1;
 				Point3D e = viewToWorld * origin;
 				Vector3D d = viewToWorld * imagePlane - viewToWorld * origin;
+				d.normalize();
 				ray.origin = e;
 				ray.dir = d;
 				col = col + (double(1)/ray_origin_offsets.size()) * shadeRay(ray, scene, light_list, 0);
