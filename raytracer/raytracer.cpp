@@ -51,7 +51,7 @@ Color Raytracer::shadeRay(Ray3D& ray, Scene& scene, LightList& light_list, int d
 	if (!ray.intersection.none) {
 		computeShading(ray, light_list);
 		int numShadowRay = 1;
-		int numReflectRay = 50;
+		int numReflectRay = 25;
 
 		#pragma omp parallel for
 		for (size_t i = 0; i < light_list.size(); ++i) {
@@ -154,13 +154,20 @@ Ray3D Raytracer::ConstructGlossyReflectRay(Ray3D ray) {
 	u.normalize();
 	Vector3D v = R.cross(u);
 	v.normalize();
-	double theta = 2 * M_PI * ((double) rand() / (RAND_MAX) - 0.5) * (ray.intersection.mat)->roughness;
-	double phi = 2 * M_PI * ((double) rand() / (RAND_MAX) - 0.5) * (ray.intersection.mat)->roughness;
-	double x = sin(theta) * cos(phi);
-	double y = sin(theta) * sin(phi);
-	double z = cos(theta);
+	// double theta = 2 * M_PI * ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
+	// double phi = 2 * M_PI * ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
+	// double x = sin(theta) * cos(phi);
+	// double y = sin(theta) * sin(phi);
+	// double z = cos(theta);
+	double x = -(ray.intersection.mat) -> roughness/2 + ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
+	double y = -(ray.intersection.mat) -> roughness/2 + ((double) rand() / (RAND_MAX)) * (ray.intersection.mat) -> roughness;
+	double z = 1;
 	Vector3D sampledDir = x * u + y * v + z * R;
 	sampledDir.normalize();
+	if (sampledDir.dot(R) < 0) {
+		// printf("%s %f %f %f\n", "wrong dir", x, y, z);
+		sampledDir = x * u + y * v - z * R;
+	}
 	Ray3D reflectRay;
 	reflectRay.dir = Vector3D(sampledDir);
 	reflectRay.origin = Point3D(ray.intersection.point) + 0.001 * reflectRay.dir;
