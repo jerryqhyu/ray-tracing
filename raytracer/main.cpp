@@ -41,25 +41,31 @@ int main(int argc, char* argv[])
 	Material steel(Color(0.5, 0.5, 0.5), Color(0.7, 0.7, 0.7),
 		Color(0.85, 0.85, 0.85),
 		25);
+	Material blue(Color(0.1, 0.1, 0.1), Color(0.1, 0.1, 0.8),
+		Color(0.85, 0.85, 0.85),
+		25);
+	Material orange(Color(0.15, 0.15, 0.15), Color(0.9, 0.4, 0.3),
+		Color(0.9, 0.9, 0.9),
+		25);
 	Material ruby(Color(0, 0, 0), Color(0.9,0,0),
 		Color(0.6, 0.6, 0.6),
 		25);
 	Material roughruby(Color(0, 0, 0), Color(0.9,0,0),
 		Color(0.6, 0.6, 0.6),
-		25);
-	Material mirror(Color(0, 0, 0), Color(0.15,0.15,0.15),
+		25, 0.05);
+	Material mirror(Color(0, 0, 0), Color(0.1,0.1,0.1),
 		Color(1,1,1),
 		999);
 
 	// Defines a point light source.
 	PointLight* pLight = new PointLight(Point3D(1,1,1), Color(0.75,0.75,0.75));
 	AreaLight* aLight = new AreaLight(Point3D(1,1,1), Color(0.75,0.75,0.75));
-	light_list.push_back(pLight);
-	// light_list.push_back(aLight);
+	// light_list.push_back(pLight);
+	light_list.push_back(aLight);
 
 	// Add a unit square into the scene with material mat.
 
-	double factor1[3] = { 0.5, 0.5, 0.5 };
+	double factor1[3] = { 0.3, 0.3, 0.3 };
 	SceneNode* s1 = new SceneNode(new UnitSphere(), &gold);
 	scene.push_back(s1);
 	s1->translate(Vector3D(0, -1, -3));
@@ -72,7 +78,7 @@ int main(int argc, char* argv[])
 
 	SceneNode* roughrubysphere = new SceneNode(new UnitSphere(), &roughruby);
 	scene.push_back(roughrubysphere);
-	roughrubysphere->translate(Vector3D(1, -2, 5));
+	roughrubysphere->translate(Vector3D(1, -2, 3));
 	roughrubysphere->scale(Point3D(0, 0, 0), factor1);
 
 	SceneNode* s3 = new SceneNode(new UnitSphere(), &steel);
@@ -94,6 +100,26 @@ int main(int argc, char* argv[])
 	scene.push_back(s6);
 	s6->translate(Vector3D(4, 6, 6));
 	s6->scale(Point3D(0, 0, 0), factor1);
+
+	SceneNode* s7 = new SceneNode(new UnitSphere(), &orange);
+	scene.push_back(s7);
+	s7->translate(Vector3D(-1, 3, -1));
+	s7->scale(Point3D(0, 0, 0), factor1);
+
+	SceneNode* s8 = new SceneNode(new UnitSphere(), &blue);
+	scene.push_back(s8);
+	s8->translate(Vector3D(1, 4, 2));
+	s8->scale(Point3D(0, 0, 0), factor1);
+
+	SceneNode* s9 = new SceneNode(new UnitSphere(), &jade);
+	scene.push_back(s9);
+	s9->translate(Vector3D(2, 0, 3));
+	s9->scale(Point3D(0, 0, 0), factor1);
+
+	SceneNode* s0 = new SceneNode(new UnitSphere(), &steel);
+	scene.push_back(s0);
+	s0->translate(Vector3D(5, -2, 1));
+	s0->scale(Point3D(0, 0, 0), factor1);
 
 	double factor2[3] = { 16, 16, 16 };
 
